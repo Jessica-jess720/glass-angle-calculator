@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>弹道入射角计算器</title>
+    <!-- 关键移动适配代码 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 电脑样式 */
+        .container { 
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            font-family: Arial;
+        }
+        input {
+            width: 200px;
+            padding: 8px;
+            margin: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 手机专用样式 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+                margin: 10px;
+            }
+            input {
+                width: 100% !important;
+                display: block;
+                margin: 10px 0;
+            }
+            button {
+                width: 100%;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>弹道入射角计算器</h2>
+        
+        <div class="input-group">
+            <label>长轴 L (mm): </label>
+            <input type="number" id="L" placeholder="输入长轴长度">
+        </div>
+
+        <div class="input-group">
+            <label>短轴 S (mm): </label>
+            <input type="number" id="S" placeholder="输入短轴长度">
+        </div>
+
+        <button onclick="calculate()" id="calcBtn">计算入射角度</button>
+
+        <div id="result" style="margin-top:20px;">
+            <h3>计算结果：</h3>
+            <p>L/S 比值 = <span id="X">--</span></p>
+            <p>Tanθ (Y) = <span id="Y">--</span></p>
+            <p>入射角 θ = <span id="theta">--</span>°</p>
+        </div>
+
+        <div style="margin-top:20px; color:#666;">
+            <h4>计算公式：</h4>
+            <p>X = L/S → Y = 2.317X - 2.245</p>
+            <p>θ = arctan(Y)</p>
+        </div>
+    </div>
+
+    <script>
+        // 计算函数（已添加手机支持）
+        function calculate() {
+            // 获取输入值
+            const L = parseFloat(document.getElementById('L').value);
+            const S = parseFloat(document.getElementById('S').value);
+
+            // 错误检查
+            if (isNaN(L) || isNaN(S)) {
+                alert("请输入有效的数字！");
+                return;
+            }
+            if (S === 0) {
+                alert("短轴长度不能为0！");
+                return;
+            }
+
+            // 计算过程
+            const X = L / S;
+            const Y = -2.245 + 2.317 * X;
+            const theta = Math.atan(Y) * (180 / Math.PI);
+
+            // 显示结果
+            document.getElementById('X').textContent = X.toFixed(4);
+            document.getElementById('Y').textContent = Y.toFixed(4);
+            document.getElementById('theta').textContent = theta.toFixed(2);
+        }
+
+        // 手机触摸事件支持
+        document.getElementById('calcBtn').addEventListener('touchend', function(e) {
+            e.preventDefault();
+            calculate();
+        });
+    </script>
+</body>
+</html>
