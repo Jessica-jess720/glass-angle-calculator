@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>弹道角度计算器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .calculator {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 8px;
+            width: 200px;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        .warning {
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h2>弹道入射角计算器</h2>
+        <p>输入弹孔参数（单位：mm）：</p>
+        <input type="number" step="any" id="inputL" placeholder="长轴长度 L">
+        <input type="number" step="any" id="inputS" placeholder="短轴长度 S">
+        <div class="warning" id="warning">⚠️ 短轴长度必须大于零</div>
+        <button onclick="calculate()">计算入射角度</button>
+
+        <div id="results">
+            <h3>计算结果：</h3>
+            <p>L/S 比值 = <span id="resultX">--</span></p>
+            <p>Tanθ (Y) = <span id="resultY">--</span></p>
+            <p>入射角 θ = <span id="resultAngle">--</span></p>
+        </div>
+
+        <div class="formula">
+            <h4>计算公式：</h4>
+            <p>X = L/S → Y = 2.317X - 2.245</p>
+            <p>θ = arctan(Y)</p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // 获取输入值
+            let L = parseFloat(document.getElementById('inputL').value);
+            let S = parseFloat(document.getElementById('inputS').value);
+            
+            // 输入验证
+            const warning = document.getElementById('warning');
+            if (S <= 0 || isNaN(S)) {
+                warning.style.display = 'block';
+                return;
+            }
+            warning.style.display = 'none';
+
+            // 计算比值
+            let X = L / S;
+            
+            // 计算Y值
+            let Y = 2.317 * X - 2.245;
+            
+            // 计算角度（弧度转角度）
+            let angleRad = Math.atan(Y);
+            let angleDeg = angleRad * (180 / Math.PI);
+
+            // 显示结果
+            document.getElementById('resultX').textContent = X.toFixed(2);
+            document.getElementById('resultY').textContent = Y.toFixed(4);
+            document.getElementById('resultAngle').textContent = angleDeg.toFixed(2) + "°";
+        }
+    </script>
+</body>
+</html>
