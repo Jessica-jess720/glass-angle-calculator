@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>弹孔测量计算器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* 基础样式 */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* 测量输入组 */
+        .measure-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .measure-group h4 {
+            grid-column: 1 / -1;
+            margin: 10px 0;
+            color: #4CAF50;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* 结果展示 */
+        #averages {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+        }
+
+        /* 历史记录 */
+        .history-item {
+            padding: 10px;
+            margin: 8px 0;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 5px;
+        }
+        #clearHistory {
+            background: #dc3545;
+            margin-top: 15px;
+        }
+
+        /* 手机适配 */
+        @media (max-width: 600px) {
+            .measure-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔍 弹孔测量计算器</h2>
+        
+        <!-- 长轴测量组 -->
+        <div class="measure-group">
+            <h4>📏 长轴测量（毫米）</h4>
+            <input type="number" id="L1" placeholder="测量值1">
+            <input type="number" id="L2" placeholder="测量值2">
+            <input type="number" id="L3" placeholder="测量值3">
+        </div>
+
+        <!-- 短轴测量组 -->
+        <div class="measure-group">
+            <h4>📐 短轴测量（毫米）</h4>
+            <input type="number" id="S1" placeholder="测量值1">
+            <input type="number" id="S2" placeholder="测量值2">
+            <input type="number" id="S3" placeholder="测量值3">
+        </div>
+
+        <button onclick="calculate()">📊 计算平均值和角度</button>
+
+        <!-- 平均值显示 -->
+        <div id="averages">
+            <h3>📈 平均值结果</h3>
+            <div class="result-line">
+                <span>长轴平均：</span>
+                <span id="avgL">--</span>
+            </div>
+            <div class="result-line">
+                <span>短轴平均：</span>
+                <span id="avgS">--</span>
+            </div>
+            <div class="result-line">
+                <span>L/S 比值：</span>
+                <span id="X">--</span>
+            </div>
+            <div class="result-line">
+                <span>入射角 θ：</span>
+                <span id="theta">--°</span>
+            </div>
+        </div>
+
+        <!-- 历史记录 -->
+        <div id="history">
+            <h3>🕒 计算历史（最近10条）</h3>
+            <div id="historyList"></div>
+            <button onclick="clearHistory()" id="clearHistory">🗑️ 清除历史</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化加载历史记录
+        window.onload = loadHistory;
+
+        // 计算平均值主函数
+        function calculate() {
+            // 获取测量值
+            const measurements = {
+                L: [getValue('L1'), getValue('L2'), getValue('L3')],
+                S: [getValue('S1'), getValue('S2'), getValue('S3')]
+            };
+
+            // 验证数据
+            if (!validateMeasurements(measurements)) return;
+
+            // 计算平均值
+            const avgL = calculateAverage(measurements.L);
+            const avgS = calculateAverage(measurements.S);
+
+            // 计算角度
+            const X = avgL / avgS;
+            const Y = -2.245 + 2.317 * X;
+            const theta = (Math.atan(Y) * 180 / Math.PI).toFixed(2);
+
+            // 显示结果
+            document.getElementById('avgL').textContent = avgL.toFixed(2);
+            document.getElementById('avgS').textContent = avgS.toFixed(2);
+            document.getElementById('X').textContent = X.toFixed(4);
+            document.getElementById('theta').textContent = theta + '°';
+
+            // 保存记录
+            saveToHistory(measurements, avgL, avgS, theta);
+        }
+
+        // 辅助函数：获取输入值
+        function getValue(id) {
+            return parseFloat(document.getElementById(id).value) || 0;
+        }
+
+        // 辅助函数：验证测量数据
+        function validateMeasurements(data) {
+            const isValid = values => values.every(v => v > 0);
+            
+            if (!isValid(data.L)) {
+                alert("⚠️ 长轴测量值需全部为有效正数！");
+                return false;
+            }
+            if (!isValid(data.S)) {
+                alert("⚠️ 短轴测量值需全部为有效正数！");
+                return false;
+            }
+            if (data.S.includes(0)) {
+                alert("⚠️ 短轴测量值不能为零！");
+                return false;
+            }
+            return true;
+        }
+
+        // 辅助函数：计算平均值（自动忽略零值）
+        function calculateAverage(values) {
+            const validValues = values.filter(v => v > 0);
+            return validValues.reduce((a, b) => a + b, 0) / validValues.length;
+        }
+
+        // 历史记录功能
+        const HISTORY_KEY = "measurementHistory";
+
+        function saveToHistory(measurements, avgL, avgS, theta) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            
+            history.unshift({
+                timestamp: new Date().toLocaleString(),
+                measurements: measurements,
+                averages: { L: avgL.toFixed(2), S: avgS.toFixed(2) },
+                theta: theta
+            });
+
+            // 保留最近10条
+            if(history.length > 10) history.pop();
+
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            const list = document.getElementById('historyList');
+            
+            list.innerHTML = history.map(item => `
+                <div class="history-item">
+                    <div>⏰ ${item.timestamp}</div>
+                    <div>📏 L: ${item.measurements.L.join(', ')}</div>
+                    <div>📐 S: ${item.measurements.S.join(', ')}</div>
+                    <div>📊 平均 L=${item.averages.L} S=${item.averages.S}</div>
+                    <div>🎯 θ=${item.theta}</div>
+                </div>
+            `).join('');
+        }
+
+        function clearHistory() {
+            localStorage.removeItem(HISTORY_KEY);
+            loadHistory();
+        }
+    </script>
+</body>
+</html>
